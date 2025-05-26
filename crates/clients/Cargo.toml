@@ -1,0 +1,45 @@
+[package]
+name = "mk1-clients"
+description = "Extensible client connections to various services"
+
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+exclude.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["-Zunstable-options", "--generate-link-to-definition", "--show-type-layout"]
+
+[lints]
+workspace = true
+
+[dependencies]
+# workspace
+mk1-chainio.path = "../chainio"
+mk1-primitives.path = "../primitives"
+
+alloy.workspace = true
+alloy-primitives.workspace = true
+alloy-rpc-types-engine.workspace = true
+alloy-rpc-types-trace.workspace = true
+alloy-sol-types.workspace = true
+alloy-transport-http.workspace = true
+beacon-api-client.workspace = true
+tokio.workspace = true
+tokio-stream.workspace = true
+tokio-retry.workspace = true
+tracing.workspace = true
+url.workspace = true
+derive_more.workspace = true
+reqwest.workspace = true
+tower.workspace = true
+serde_json.workspace = true
+http-body-util.workspace = true
+thiserror.workspace = true
+tokio-tungstenite.workspace = true
+
+[dev-dependencies]
+mockito.workspace = true

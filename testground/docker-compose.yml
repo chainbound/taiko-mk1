@@ -1,0 +1,173 @@
+services:
+  taiko-geth-0:
+    container_name: taiko-geth-0
+    # image: us-docker.pkg.dev/evmchain/images/taiko-geth:taiko
+    image: ghcr.io/chainbound/taiko-geth:22-05-2025
+    restart: unless-stopped
+    pull_policy: always
+    volumes:
+      - ./jwt.hex:/jwt.hex
+    ports:
+      # HTTP JSON-RPC
+      - 8544:8545
+      # WebSocket JSON-RPC
+      - 8546:8546
+      # Engine API
+      - 8551:8551
+    networks:
+      - kt-ethereum-devnet
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    # NOTE: Set networkid to 167010, because that's the preconf devnet ID
+    command: |
+      --nodiscover
+      --gcmode archive
+      --syncmode full
+      --datadir /data/taiko-geth
+      --networkid 167010
+      --metrics
+      --metrics.expensive
+      --metrics.addr 0.0.0.0
+      --http
+      --http.addr 0.0.0.0
+      --http.vhosts *
+      --http.corsdomain *
+      --ws
+      --ws.addr 0.0.0.0
+      --ws.origins *
+      --authrpc.addr 0.0.0.0
+      --authrpc.port 8551
+      --authrpc.vhosts *
+      --authrpc.jwtsecret /jwt.hex
+      --allow-insecure-unlock
+      --http.api admin,debug,eth,net,web3,txpool,miner,taiko
+      --ws.api admin,debug,eth,net,web3,txpool,miner,taiko
+      --taiko
+  taiko-driver-0:
+    container_name: taiko-driver-0
+    # image: us-docker.pkg.dev/evmchain/images/taiko-client:main
+    image: ghcr.io/chainbound/taiko-client:22-05-2025
+    restart: unless-stopped
+    pull_policy: always
+    volumes:
+      - ./jwt.hex:/jwt.hex
+      - ./pk1.txt:/pk1.txt
+    ports:
+      # Preconfirmation server
+      - 8082:8080
+    networks:
+      kt-ethereum-devnet: {}
+      taiko-internal:
+        ipv4_address: 172.23.0.2
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    # Inherit env vars from parent process
+    environment:
+      - L1_WS
+      - L1_BEACON
+      - TAIKO_INBOX # Inbox contract on L1
+      - PRECONFIRMATION_WHITELIST # PreconfWhitelist contract on L1
+      - TAIKO_ANCHOR # Anchor contract on L2
+      - TAIKO_TOKEN # Taiko token contract on L2
+    command: |
+      driver
+      --jwtSecret /jwt.hex
+      --l2.ws ws://taiko-geth-0:8546
+      --l2.auth http://taiko-geth-0:8551
+      --preconfirmation.serverPort 8080
+      --verbosity 4
+      --p2p.sequencer.key 0xbcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31
+      --p2p.priv.path /pk1.txt
+      --p2p.static /ip4/172.23.0.3/tcp/9222/p2p/16Uiu2HAm53jTejS4zpfje6Him3QMbSyzbkZyCU3Mo6xyjcm5iU7q
+      --p2p.no-discovery
+  taiko-geth-1:
+    container_name: taiko-geth-1
+    # image: us-docker.pkg.dev/evmchain/images/taiko-geth:taiko
+    image: ghcr.io/chainbound/taiko-geth:22-05-2025
+    restart: unless-stopped
+    pull_policy: always
+    volumes:
+      - ./jwt.hex:/jwt.hex
+    ports:
+      # HTTP JSON-RPC
+      - 8547:8545
+      # WebSocket JSON-RPC
+      - 8548:8546
+      # Engine API
+      - 8552:8551
+    networks:
+      - kt-ethereum-devnet
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    # NOTE: Set networkid to 167010, because that's the preconf devnet ID
+    command: |
+      --nodiscover
+      --gcmode archive
+      --syncmode full
+      --datadir /data/taiko-geth
+      --networkid 167010
+      --metrics
+      --metrics.expensive
+      --metrics.addr 0.0.0.0
+      --http
+      --http.addr 0.0.0.0
+      --http.vhosts *
+      --http.corsdomain *
+      --ws
+      --ws.addr 0.0.0.0
+      --ws.origins *
+      --authrpc.addr 0.0.0.0
+      --authrpc.port 8551
+      --authrpc.vhosts *
+      --authrpc.jwtsecret /jwt.hex
+      --allow-insecure-unlock
+      --http.api admin,debug,eth,net,web3,txpool,miner,taiko
+      --ws.api admin,debug,eth,net,web3,txpool,miner,taiko
+      --taiko
+
+  taiko-driver-1:
+    container_name: taiko-driver-1
+    # image: us-docker.pkg.dev/evmchain/images/taiko-client:main
+    image: ghcr.io/chainbound/taiko-client:22-05-2025
+    restart: unless-stopped
+    pull_policy: always
+    volumes:
+      - ./jwt.hex:/jwt.hex
+      - ./pk2.txt:/pk2.txt
+    ports:
+      # Preconfirmation server
+      - 8083:8080
+    networks:
+      kt-ethereum-devnet: {}
+      taiko-internal:
+        ipv4_address: 172.23.0.3
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    # Inherit env vars from parent process
+    environment:
+      - L1_WS
+      - L1_BEACON
+      - TAIKO_INBOX # Inbox contract on L1
+      - PRECONFIRMATION_WHITELIST # PreconfWhitelist contract on L1
+      - TAIKO_ANCHOR # Anchor contract on L2
+      - TAIKO_TOKEN # Taiko token contract on L2
+    command: |
+      driver
+      --jwtSecret /jwt.hex
+      --l2.ws ws://taiko-geth-1:8546
+      --l2.auth http://taiko-geth-1:8551
+      --preconfirmation.serverPort 8080
+      --verbosity 4
+      --p2p.sequencer.key 0x354789741f3e47de59b3cd9202c3f8863d58f6f7cdca99d5f60d8ae6c4e4d4a2
+      --p2p.priv.path /pk2.txt
+      --p2p.static /ip4/172.23.0.2/tcp/9222/p2p/16Uiu2HAky7qVfENskeXseSzcKLP4PoQyeyH2SNNdmLncY9m3Gex8
+      --p2p.no-discovery
+
+networks:
+  # Join the Kurtosis network so we can talk to L1 services
+  kt-ethereum-devnet:
+    external: true
+  taiko-internal:
+    ipam:
+      config:
+        - subnet: 172.23.0.0/24

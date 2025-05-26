@@ -1,0 +1,30 @@
+[package]
+name = "mk1-config"
+description = "Configuration for the Mk1 sequencer"
+
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+exclude.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["-Zunstable-options", "--generate-link-to-definition", "--show-type-layout"]
+
+[lints]
+workspace = true
+
+[dependencies]
+alloy.workspace = true
+alloy-rpc-types-engine.workspace = true
+clap.workspace = true
+metrics-exporter-prometheus.workspace = true
+tracing.workspace = true
+url.workspace = true
+opentelemetry.workspace = true
+opentelemetry_sdk.workspace = true
+tracing-subscriber.workspace = true
+opentelemetry-otlp.workspace = true
+opentelemetry-appender-tracing.workspace = true

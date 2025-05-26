@@ -1,0 +1,111 @@
+# Generate coverage report for PRs
+name: Coverage
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+        - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  coverage:
+    name: tarpaulin
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    container:
+        image: xd009642/tarpaulin:latest
+        options: --security-opt seccomp=unconfined
+    permissions:
+      contents: read
+      pull-requests: write
+    
+    steps:
+    - name: Checkout PR
+      uses: actions/checkout@v4
+    
+    # This is required for tarpaulin caches to work
+    - name: Cache cargo registry and build
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+          target/tarpaulin
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+
+    - name: Install Protoc
+      uses: arduino/setup-protoc@v3
+    
+    - name: Generate coverage
+      run: |
+        cargo tarpaulin --skip-clean --target-dir target/tarpaulin --all-features --workspace --timeout 120 --exclude-files target/debug/build/*/out/* --fail-under 20 | tee tarpaulin_output.txt
+        PR_COVERAGE=$(awk '/% coverage/ {print $1}' tarpaulin_output.txt)
+        PR_COVERAGE_LINES=$(awk -F'[ ,]+' '/lines covered/ {print $3}' tarpaulin_output.txt)
+        PR_COVERAGE_DETAILED=$(awk '/\|\| Tested\/Total Lines:/, /^\|\| *$/' tarpaulin_output.txt)
+        echo "Output: $PR_COVERAGE $PR_COVERAGE_LINES"
+        echo "PR_COVERAGE=$PR_COVERAGE" >> $GITHUB_ENV
+        echo "PR_COVERAGE_LINES=$PR_COVERAGE_LINES" >> $GITHUB_ENV
+        echo "PR_COVERAGE_DETAILED<<EOF" >> $GITHUB_ENV
+        echo "$PR_COVERAGE_DETAILED" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+
+    - name: Comment PR with coverage
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const prCoverage = parseFloat(process.env.PR_COVERAGE);
+          const prCoverageLines = process.env.PR_COVERAGE_LINES;
+          const prCoverageDetailed = (process.env.PR_COVERAGE_DETAILED || "");
+
+          // Per-crate coverage calculation
+          const crateStats = {};
+          prCoverageDetailed.split('\n').forEach(line => {
+            const match = line.match(/^\|\|\s*([^:]+):\s*(\d+)\/(\d+)/);
+            if (match) {
+              const filePath = match[1].trim();
+              const covered = parseInt(match[2], 10);
+              const total = parseInt(match[3], 10);
+              const crate = filePath.split('/').slice(0, 2).join('/');
+              if (!crateStats[crate]) {
+                crateStats[crate] = { covered: 0, total: 0 };
+              }
+              crateStats[crate].covered += covered;
+              crateStats[crate].total += total;
+            }
+          });
+
+          let crateTable = '| Crate | Coverage |\n|-------|----------|\n';
+          for (const [crate, { covered, total }] of Object.entries(crateStats)) {
+            const percent = total > 0 ? ((covered / total) * 100).toFixed(2) : 'N/A';
+            crateTable += `| ${crate} | ${percent}% |\n`;
+          }
+
+          const dedent = str => str.replace(/^[ \t]+/gm, '');
+
+          const comment = dedent(`## Coverage Report
+          
+          | Metric | Value |
+          |--------|-------|
+          | **Coverage** | ${prCoverage.toFixed(2)}% |
+          | **Lines Covered** | ${prCoverageLines} |
+          
+          ${prCoverage >= 80 ? '✅' : prCoverage >= 60 ? '⚠️' : '❌'} **Status**: ${prCoverage >= 80 ? 'GOOD' : prCoverage >= 60 ? 'NEEDS IMPROVEMENT' : 'POOR'}
+          
+          ### Per-Crate Coverage
+          
+          ${crateTable}
+          `);
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });

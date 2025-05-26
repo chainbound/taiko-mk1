@@ -1,0 +1,38 @@
+[package]
+name = "mk1-primitives"
+description = "Primitive types and utilities for the mk1 preconfirmation sidecar"
+
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+exclude.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["-Zunstable-options", "--generate-link-to-definition", "--show-type-layout"]
+
+[lints]
+workspace = true
+
+[dependencies]
+alloy-json-rpc.workspace = true
+alloy-primitives.workspace = true
+alloy-rlp.workspace = true
+alloy.workspace = true
+derive_more.workspace = true
+ethereum-consensus.workspace = true
+flate2.workspace = true
+futures.workspace = true
+k256.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio-retry.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+approx.workspace = true
+rand.workspace = true

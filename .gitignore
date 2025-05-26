@@ -1,0 +1,10 @@
+### macOS ###
+.DS_Store
+
+### Rust ###
+/target
+!.env.example
+.env
+
+### Taiko ###
+taiko-mono/

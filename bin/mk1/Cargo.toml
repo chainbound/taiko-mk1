@@ -1,0 +1,36 @@
+[package]
+name = "mk1"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Mk1 Sequencer binary"
+default-run = "mk1"
+
+[lints]
+workspace = true
+
+[dependencies]
+# workspace
+mk1-config = { path = "../../crates/config" }
+mk1-driver = { path = "../../crates/driver" }
+mk1-primitives = { path = "../../crates/primitives" }
+
+clap.workspace = true
+dotenvy.workspace = true
+eyre.workspace = true
+tikv-jemallocator = { workspace = true, optional = true }
+tikv-jemalloc-ctl = { workspace = true, optional = true }
+tokio.workspace = true
+tracing.workspace = true
+
+[features]
+default = ["jemalloc"]
+# Enable jemalloc as the global allocator
+jemalloc = ["dep:tikv-jemallocator"]
+# Enable jemalloc profiling capabilities
+jemalloc-prof = ["jemalloc", "dep:tikv-jemalloc-ctl"]
+
+[[bin]]
+name = "mk1"
+path = "src/main.rs"

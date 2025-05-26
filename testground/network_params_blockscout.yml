@@ -1,0 +1,42 @@
+# Minimal Ethereum devnet with Geth & Lighthouse
+# Configuration docs: https://github.com/ethpandaops/ethereum-package/blob/main/README.md#configuration
+
+participants:
+  - el_type: geth
+    cl_type: lighthouse
+    vc_type: lighthouse
+  - el_type: geth
+    cl_type: lighthouse
+    vc_type: lighthouse
+
+additional_services:
+  # CL explorer
+  - dora
+  # EL explorer
+  - blockscout
+  # Spams the network with blobs
+  # - blob_spammer
+
+blockscout_params:
+  # NOTE: latest doesn't work
+  image: blockscout/blockscout:7.0.0-alpha.1
+  verif_image: "ghcr.io/blockscout/smart-contract-verifier:latest"
+  frontend_image: "ghcr.io/blockscout/frontend:latest"
+
+network_params:
+  network: "kurtosis"
+  network_id: "3151908"
+  deposit_contract_address: "0x4242424242424242424242424242424242424242"
+  seconds_per_slot: 12
+  num_validator_keys_per_node: 64
+  preregistered_validator_count: 128
+
+  prefunded_accounts: '{"0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266": {"balance": "10ETH"}}'
+
+  preset: mainnet
+
+  # Preloaded contracts:
+  # - Taiko Inbox
+  # - Taiko Whitelist
+  # additional_preloaded_contracts: >-
+  #   '{}'

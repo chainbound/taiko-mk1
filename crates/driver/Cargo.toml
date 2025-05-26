@@ -1,0 +1,39 @@
+[package]
+name = "mk1-driver"
+description = "Driver for the Mk1 sequencer"
+
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+exclude.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["-Zunstable-options", "--generate-link-to-definition", "--show-type-layout"]
+
+[lints]
+workspace = true
+
+[dependencies]
+# workspace
+mk1-chainio.path = "../chainio"
+mk1-config.path = "../config"
+mk1-clients.path = "../clients"
+mk1-primitives.path = "../primitives"
+
+alloy.workspace = true
+alloy-primitives.workspace = true
+alloy-sol-types.workspace = true
+tokio.workspace = true
+tokio-stream.workspace = true
+tracing.workspace = true
+derive_more.workspace = true
+thiserror.workspace = true
+metrics.workspace = true
+beacon-api-client.workspace = true
+futures.workspace = true
+
+[dev-dependencies]
+url.workspace = true

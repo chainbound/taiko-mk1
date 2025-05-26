@@ -1,0 +1,34 @@
+[package]
+name = "mk1-chainio"
+description = "Smart contract interfaces"
+
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+exclude.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["-Zunstable-options", "--generate-link-to-definition", "--show-type-layout"]
+
+[lints]
+workspace = true
+
+[dependencies]
+# workspace
+mk1-primitives.path = "../primitives"
+
+alloy.workspace = true
+alloy-primitives.workspace = true
+alloy-contract.workspace = true
+alloy-sol-macro.workspace = true
+alloy-sol-types.workspace = true
+url.workspace = true
+derive_more.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tokio.workspace = true
